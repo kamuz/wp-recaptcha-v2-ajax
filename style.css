@@ -33,6 +33,7 @@ Template: generatepress
 #contact-form-result > div {
 	padding: 10px;
 	margin-bottom: 20px;
+	border-radius: 3px;
 }
 
 #contact-form-result .sending {
