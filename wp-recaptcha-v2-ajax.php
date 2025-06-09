@@ -1,9 +1,11 @@
 <?php
 /**
- * GeneratePress Child Theme Functions
- * AJAX reCAPTCHA-enabled contact form.
- *
- * @package GeneratePressChild
+ * Plugin Name: AJAX reCAPCHA v2
+ * Plugin URI: https://wpdev.pp.ua
+ * Description: AJAX reCAPTCHA-enabled contact form
+ * Author: Volodymyr Kamuz
+ * Author URI: https://wpdev.pp.ua
+ * Version: 1.0.0
  */
 
 // Prevent direct access.
@@ -12,19 +14,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define reCAPTCHA keys.
-define( 'RECAPTCHA_SITE_KEY', '6Lc34lQrAAAAAGh-KA4wyOJZfo-IPWEj8zGqu_pY' );
-define( 'RECAPTCHA_SECRET_KEY', '6Lc34lQrAAAAAJJXYL1DRT0nCpd3F0kadU5pjsod' );
+define( 'RECAPTCHA_SITE_KEY', 'your_site_key_here' );
+define( 'RECAPTCHA_SECRET_KEY', 'your_secret_key_here' );
 
 /**
  * Enqueue parent theme styles and contact form scripts.
  */
-function gp_child_enqueue_assets() {
+function cf_enqueue_assets() {
 	wp_enqueue_style(
-		'generatepress-parent',
-		get_template_directory_uri() . '/style.css',
+		'cf_style',
+		plugin_dir_url( __FILE__ ) . '/wp-recaptcha-v2-ajax.css',
 		array(),
 		'1.0.0'
-	); // Load parent theme styles.
+	); // Load styles.
 
 	wp_enqueue_script(
 		'google-recaptcha',
@@ -36,7 +38,7 @@ function gp_child_enqueue_assets() {
 
 	wp_enqueue_script(
 		'contact-form-ajax',
-		get_stylesheet_directory_uri() . '/contact-form.js',
+		plugin_dir_url( __FILE__ ) . '/wp-recaptcha-v2-ajax.js',
 		array( 'jquery' ),
 		'1.0.0',
 		true
@@ -51,7 +53,7 @@ function gp_child_enqueue_assets() {
 		)
 	); // Pass AJAX URL and nonce to JS.
 }
-add_action( 'wp_enqueue_scripts', 'gp_child_enqueue_assets' );
+add_action( 'wp_enqueue_scripts', 'cf_enqueue_assets' );
 
 /**
  * Verify Google reCAPTCHA response token.
