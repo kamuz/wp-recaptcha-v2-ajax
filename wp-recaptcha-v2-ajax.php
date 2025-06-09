@@ -6,6 +6,8 @@
  * Author: Volodymyr Kamuz
  * Author URI: https://wpdev.pp.ua
  * Version: 1.0.0
+ *
+ * @package AjaxRecaptchaV2
  */
 
 // Prevent direct access.
@@ -14,8 +16,68 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define reCAPTCHA keys.
-define( 'RECAPTCHA_SITE_KEY', 'your_site_key_here' );
-define( 'RECAPTCHA_SECRET_KEY', 'your_secret_key_here' );
+$site_key   = esc_attr( get_option( 'cf_recaptcha_site_key', '' ) );
+$secret_key = esc_attr( get_option( 'cf_recaptcha_secret_key', '' ) );
+
+/**
+ * Register a custom settings page under the admin menu.
+ */
+function cf_register_settings_page() {
+	add_menu_page(
+		'Contact Form Settings',
+		'Contact Form',
+		'manage_options',
+		'cf-contact-form-settings',
+		'cf_render_settings_page',
+		'dashicons-email',
+		100
+	);
+}
+add_action( 'admin_menu', 'cf_register_settings_page' );
+
+/**
+ * Output the form for settings.
+ */
+function cf_render_settings_page() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	if ( isset( $_POST['cf_settings_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['cf_settings_nonce'] ) ), 'cf_save_settings' ) ) {
+		update_option( 'cf_recaptcha_site_key', sanitize_text_field( wp_unslash( $_POST['cf_recaptcha_site_key'] ?? '' ) ) );
+		update_option( 'cf_recaptcha_secret_key', sanitize_text_field( wp_unslash( $_POST['cf_recaptcha_secret_key'] ?? '' ) ) );
+
+		echo '<div class="updated"><p>Settings saved.</p></div>';
+	}
+
+	$site_key   = esc_attr( get_option( 'cf_recaptcha_site_key', '' ) );
+	$secret_key = esc_attr( get_option( 'cf_recaptcha_secret_key', '' ) );
+	?>
+
+	<div class="wrap">
+		<h1>Contact Form Settings</h1>
+		<form method="post" action="">
+			<?php wp_nonce_field( 'cf_save_settings', 'cf_settings_nonce' ); ?>
+
+			<table class="form-table">
+				<tr valign="top">
+					<th scope="row"><label for="cf_recaptcha_site_key">reCAPTCHA Site Key</label></th>
+					<td><input type="text" name="cf_recaptcha_site_key" id="cf_recaptcha_site_key" value="<?php echo esc_attr( $site_key ); ?>" class="regular-text" /></td>
+				</tr>
+
+				<tr valign="top">
+					<th scope="row"><label for="cf_recaptcha_secret_key">reCAPTCHA Secret Key</label></th>
+					<td><input type="text" name="cf_recaptcha_secret_key" id="cf_recaptcha_secret_key" value="<?php echo esc_attr( $secret_key ); ?>" class="regular-text" /></td>
+				</tr>
+			</table>
+
+			<?php submit_button(); ?>
+		</form>
+	</div>
+
+	<?php
+}
+
 
 /**
  * Enqueue parent theme styles and contact form scripts.
@@ -75,7 +137,7 @@ function verify_recaptcha( $recaptcha_response ) {
 		$verify_url,
 		array(
 			'body' => array(
-				'secret'   => RECAPTCHA_SECRET_KEY,
+				'secret'   => get_option( 'cf_recaptcha_secret_key' ),
 				'response' => sanitize_text_field( $recaptcha_response ),
 				'remoteip' => sanitize_text_field( $remote_ip ),
 			),
@@ -174,7 +236,7 @@ function ajax_contact_form_shortcode() {
 		</div>
 
 		<div class="form-group">
-			<div class="g-recaptcha" data-sitekey="<?php echo esc_attr( RECAPTCHA_SITE_KEY ); ?>"></div>
+			<div class="g-recaptcha" data-sitekey="<?php echo esc_attr( get_option( 'cf_recaptcha_site_key', '' ) ); ?>"></div>
 		</div>
 
 		<div class="form-group">
